@@ -1008,9 +1008,9 @@ function showProns(key) {
   });
   html += `</div></div>`;
 
-  // 5. Premios Especiales
+  // 5. Premios Especiales (¡Con los iconos integrados aquí!)
   const premiosCheck = [
-  { label: 'Campeón', icon: '🏆', pred: p.premios['Campeón'] || '—', real: realResults['premio_campeon'] || '—' },
+    { label: 'Campeón', icon: '🏆', pred: p.premios['Campeón'] || '—', real: realResults['premio_campeon'] || '—' },
     { label: 'Subcampeón', icon: '🥈', pred: p.premios['Subcampeón'] || '—', real: realResults['premio_sub'] || '—' },
     { label: '3er puesto', icon: '🥉', pred: p.premios['3er puesto'] || '—', real: realResults['premio_3er'] || '—' },
     { label: '4to puesto', icon: '4️⃣', pred: p.premios['4to puesto'] || '—', real: realResults['premio_4to'] || '—' },
@@ -1024,15 +1024,18 @@ function showProns(key) {
     let colorEq = 'var(--text)';
     let hitMark = '';
     
-    // Si ya se ha rellenado el resultado real de este premio
+    // Calcula si es acierto/fallo (si ya se introdujo el resultado real)
     if (premio.real !== '—') {
         const hit = normalizeTeam(premio.pred) === normalizeTeam(premio.real);
-        colorEq = hit ? '#86efac' : '#f87171'; // Verde acierto, rojo fallo
+        colorEq = hit ? '#86efac' : '#f87171'; // Verde o Rojo
         hitMark = hit ? ' ✓' : '';
     }
     
+    // Aquí se inyecta la variable ${premio.icon}
     html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:10px;">
-      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;">${premio.label}</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;display:flex;align-items:center;gap:6px;">
+        <span style="font-size:1.1rem;">${premio.icon}</span><span>${premio.label}</span>
+      </div>
       <div style="font-size:0.85rem;font-weight:600;color:${colorEq};">${obtenerBandera(premio.pred)}${premio.pred}${hitMark}</div>
     </div>`;
   });
@@ -1041,7 +1044,6 @@ function showProns(key) {
   document.getElementById('modal-body').innerHTML = html;
   document.getElementById('modal').classList.add('open');
 }
-
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 
 document.addEventListener('click', function(e) {

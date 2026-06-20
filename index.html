@@ -908,32 +908,49 @@ function showDetail(key) {
 }
 
 function showProns(key) {
-  const p = PRONOSTICOS.participants[key];
-  if(!p) return;
-  document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Todos los pronósticos';
+  const p = PRONOSTICOS.participants[key]; if(!p) return;
+  document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Pronósticos Completos';
   let html = '';
 
-  html += `<div class="detail-section">
-    <h4>⚽ Partidos de fase de grupos (72 partidos)</h4>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:3px;margin-top:6px">`;
-  for(let i=1;i<=72;i++){
-    const m=PRONOSTICOS.matches[String(i)];
-    const pron=p.partidos[String(i)]||'—';
-    const real=realResults['m_'+i]||'';
-    let hit=false; let hitClass='';
-    if(real && pron!=='—'){
-      const sc=scoreMatch(pron,real,getScoring());
-      hit=sc.pts>0;
+  // 1. Partidos de Grupos (con colores y banderas)
+  html += `<div class="detail-section"><h4>⚽ Pronósticos Partidos de Grupos</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:6px;max-height:240px;overflow-y:auto;background:var(--card2);padding:10px;border-radius:6px;border:1px solid var(--border);margin-bottom:12px;">`;
+  for(let i=1; i<=72; i++){
+    const m = PRONOSTICOS.matches[String(i)];
+    const pron = p.partidos[String(i)] || '—';
+    const real = realResults['m_'+i] || '—';
+    
+    let bgRow = 'transparent';
+    let borderRow = 'rgba(255,255,255,0.05)';
+    const pParsed = parseScore(pron);
+    const rParsed = parseScore(real);
+    
+    if (pParsed && rParsed) {
+      const exacto = (pParsed[0] === rParsed[0] && pParsed[1] === rParsed[1]);
+      const signo = getSign(pParsed[0], pParsed[1]) === getSign(rParsed[0], rParsed[1]);
+      if (exacto) {
+        bgRow = 'rgba(0, 166, 81, 0.15)'; 
+        borderRow = 'rgba(0, 166, 81, 0.3)';
+      } else if (signo) {
+        bgRow = 'rgba(245, 166, 35, 0.15)'; 
+        borderRow = 'rgba(245, 166, 35, 0.3)';
+      } else {
+        bgRow = 'rgba(232, 65, 66, 0.08)'; 
+        borderRow = 'rgba(232, 65, 66, 0.2)';
+      }
     }
-    hitClass=real?(hit?'hit':'miss'):'';
-    html+=`<div class="detail-row ${hitClass}" style="display:flex;align-items:center;gap:5px;padding:4px 7px">
-      <span style="font-size:0.72rem;color:var(--muted);min-width:16px">${i}.</span>
-      <span style="flex:1;font-size:0.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${obtenerBandera(m.equipo1)}${m.equipo1} vs ${obtenerBandera(m.equipo2)}${m.equipo2}</span>
-      <span style="font-family:monospace;font-size:0.8rem;font-weight:700;color:${hitClass==='hit'?'#86efac':hitClass==='miss'?'#f87171':'#7dd4fc'};white-space:nowrap">${pron}</span>
-      ${real?`<span style="font-size:0.65rem;color:var(--muted)">→ ${real}</span>`:''}
+
+    html += `<div style="font-size:0.8rem; background:${bgRow}; border:1px solid ${borderRow}; padding:6px 8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="display:flex; align-items:center; gap:2px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        <strong style="color:var(--muted); margin-right:4px;">${i}.</strong>
+        ${obtenerBandera(m.equipo1)}${m.equipo1} <span style="color:var(--muted);font-size:0.75rem;margin:0 2px;">vs</span> ${obtenerBandera(m.equipo2)}${m.equipo2}
+      </span>
+      <span style="font-family:monospace; font-weight:700; flex-shrink:0; margin-left:8px;">
+        ${pron} <span style="color:var(--muted); font-weight:400; font-size:0.75rem;">(${real})</span>
+      </span>
     </div>`;
   }
-  html += '</div></div>';
+  html += `</div></div>`;
 
   // 2. Posiciones en Grupos
   html += `<div class="detail-section"><h4>🏆 Posiciones en Grupos</h4>
@@ -1007,10 +1024,9 @@ function showProns(key) {
     let colorEq = 'var(--text)';
     let hitMark = '';
     
-    // Si ya se ha rellenado el resultado real de este premio
     if (premio.real !== '—') {
         const hit = normalizeTeam(premio.pred) === normalizeTeam(premio.real);
-        colorEq = hit ? '#86efac' : '#f87171'; // Verde acierto, rojo fallo
+        colorEq = hit ? '#86efac' : '#f87171';
         hitMark = hit ? ' ✓' : '';
     }
     

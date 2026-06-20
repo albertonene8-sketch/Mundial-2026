@@ -237,11 +237,11 @@
   <div class="match-grid" id="matches-container"></div>
   <div class="fase-header"><h3>🏆 Clasificados por grupo</h3><span class="badge">12 grupos</span></div>
   <div class="grupos-grid" id="grupos-container"></div>
-  <div class="fase-header"><h3>🥊 Dieciseisavos de final</h3><span class="badge">32 equipos</span></div>
+  <div class="fase-header"><h3>🥊 Dieciseisavos de final</h3><span class="badge">16 equipos</span></div>
   <div class="fases-grid" id="16vos-container"></div>
-  <div class="fase-header"><h3>🥊 Octavos de final</h3><span class="badge">16 equipos</span></div>
+  <div class="fase-header"><h3>🥊 Octavos de final</h3><span class="badge">8 equipos</span></div>
   <div class="fases-grid" id="8vos-container"></div>
-  <div class="fase-header"><h3>🥊 Cuartos de final</h3><span class="badge">8 equipos</span></div>
+  <div class="fase-header"><h3>🥊 Cuartos de final</h3><span class="badge">4 equipos</span></div>
   <div class="fases-grid" id="4tos-container"></div>
   <div class="fase-header"><h3>🥊 Semifinales</h3><span class="badge">4 equipos</span></div>
   <div class="fases-grid" id="semis-container"></div>
@@ -504,10 +504,9 @@ async function saveToCloud() {
 function collectAllInputs() {
   for(let i=1;i<=72;i++){const el=document.getElementById('r_m_'+i);if(el)realResults['m_'+i]=el.value.trim();}
   'ABCDEFGHIJKL'.split('').forEach(g=>{for(let p=1;p<=3;p++){const el=document.getElementById('r_g_'+g+'_'+p);if(el)realResults['g_'+g+'_'+p]=el.value;}});
-  
-  const fc=[{id:'16vos',max:32},{id:'8vos',max:16},{id:'4tos',max:8},{id:'Semis',max:4},{id:'final',max:2}];
-  fc.forEach(f=>{
-    for(let i=1;i<=f.max;i++){const el=document.getElementById('r_fase_'+f.id+'_'+i);if(el)realResults['fase_'+f.id+'_'+i]=el.value;}
+  ['16vos','8vos','4tos','semis','final'].forEach(fase=>{
+    const max=fase==='16vos'?16:fase==='8vos'?8:fase==='4tos'?4:fase==='semis'?4:2;
+    for(let i=1;i<=max;i++){const el=document.getElementById('r_fase_'+fase+'_'+i);if(el)realResults['fase_'+fase+'_'+i]=el.value;}
   });
   ['campeon','sub','3er','4to','goleador','portero'].forEach(k=>{const el=document.getElementById('r_premio_'+k);if(el)realResults['premio_'+k]=el.value;});
 }
@@ -586,10 +585,13 @@ function onMatchInput(i,el){
 }
 
 function buildResultsUI() {
-  const mc=document.getElementById('matches-container'); if(!mc) return; mc.innerHTML='';
+  const mc=document.getElementById('matches-container');
+  if(!mc) return;
+  mc.innerHTML='';
   for(let i=1;i<=72;i++){
-    const m=PRONOSTICOS.matches[String(i)]; const val=realResults['m_'+i]||'';
-    mc.innerHTML+=`<div class="match-row${val?' has-result':''}" id="row_m_${i}"><span class="match-num">${i}</span><span class="match-teams">${obtenerBandera(m.equipo1)}${m.equipo1}<span>vs</span>${obtenerBandera(m.equipo2)}${m.equipo2}</span><input class="result-input${val?' filled':''}" id="r_m_${i}" value="${val}" placeholder="2-1" oninput="onMatchInput(${i},this)"></div>`;
+    const m=PRONOSTICOS.matches[String(i)];
+    const val=realResults['m_'+i]||'';
+    mc.innerHTML+=`<div class="match-row${val?' has-result':''}" id="row_m_${i}"><span class="match-num">${i}</span><span class="match-teams">${obtenerBandera(m.equipo1)}${m.equipo1}<span>vs</span>${obtenerBandera(m.equipo2)}${m.equipo2}</span><input class="result-input${val?' filled':''}" id="r_m_'+i+'" id="r_m_${i}" value="${val}" placeholder="2-1" oninput="onMatchInput(${i},this)"></div>`;
   }
   
   const equiposPorGrupo={};
@@ -605,28 +607,16 @@ function buildResultsUI() {
   const gc=document.getElementById('grupos-container'); if(gc) gc.innerHTML='';
   'ABCDEFGHIJKL'.split('').forEach(g=>{
     const equipos=Array.from(equiposPorGrupo[g]||[]).sort();
-    if(gc) gc.innerHTML+=`<div class="grupo-card"><div class="grupo-title">Grupo ${g}</div>${[1,2,3].map(p=>{const sid=`r_g_${g}_${p}`;return `<div class="grupo-pos"><span class="pos-badge pos-${p}">${p}º</span>${makeSelect(sid,equipos,realResults['g_'+g+'_'+p],`realResults['g_${g}_${p}']=this.value;refreshFaseSelects()`)}</div>`;}).join('')}</div>`;
+    if(gc) gc.innerHTML+=`<div class="grupo-card"><div class="grupo-title">Grupo ${g}</div>${[1,2,3].map(p=>{const sid=`r_g_${g}_${p}`;return`<div class="grupo-pos"><span class="pos-badge pos-${p}">${p}º</span>${makeSelect(sid,equipos,realResults['g_'+g+'_'+p],"realResults['g_"+g+"_"+p+"']=this.value;refreshFaseSelects()")}</div>`;}).join('')}</div>`;
   });
   
   function getAvailableTeams(fase){
-    if(fase==='16vos'){
-      const t=new Set();
-      'ABCDEFGHIJKL'.split('').forEach(g=>{for(let p=1;p<=3;p++){const v=realResults['g_'+g+'_'+p];if(v)t.add(v);}});
-      return Array.from(t).sort();
-    }
-    if(fase==='8vos'){
-      const t=new Set(); for(let i=1;i<=32;i++){const v=realResults['fase_16vos_'+i];if(v)t.add(v);} return Array.from(t).sort();
-    }
-    if(fase==='4tos'){
-      const t=new Set(); for(let i=1;i<=16;i++){const v=realResults['fase_8vos_'+i];if(v)t.add(v);} return Array.from(t).sort();
-    }
-    if(fase==='Semis'){
-      const t=new Set(); for(let i=1;i<=8;i++){const v=realResults['fase_4tos_'+i];if(v)t.add(v);} return Array.from(t).sort();
-    }
-    if(fase==='final'){
-      const t=new Set(); for(let i=1;i<=4;i++){const v=realResults['fase_Semis_'+i];if(v)t.add(v);} return Array.from(t).sort();
-    }
-    return [];
+    if(fase==='16vos'){const t=new Set();'ABCDEFGHIJKL'.split('').forEach(g=>{for(let p=1;p<=2;p++){const v=realResults['g_'+g+'_'+p];if(v)t.add(v);}});return Array.from(t).sort();}
+    if(fase==='8vos'){const t=new Set();for(let i=1;i<=16;i++){const v=realResults['fase_16vos_'+i];if(v)t.add(v);}return Array.from(t).sort();}
+    if(fase==='4tos'){const t=new Set();for(let i=1;i<=8;i++){const v=realResults['fase_8vos_'+i];if(v)t.add(v);}return Array.from(t).sort();}
+    if(fase==='semis'){const t=new Set();for(let i=1;i<=4;i++){const v=realResults['fase_4tos_'+i];if(v)t.add(v);}return Array.from(t).sort();}
+    if(fase==='final'){const t=new Set();for(let i=1;i<=4;i++){const v=realResults['fase_semis_'+i];if(v)t.add(v);}return Array.from(t).sort();}
+    return[];
   }
   
   function buildFaseSelect(faseId,slot,opciones,saved){
@@ -637,7 +627,7 @@ function buildResultsUI() {
   }
   
   function renderFaseContainers(){
-    const fc=[{id:'16vos',count:32},{id:'8vos',count:16},{id:'4tos',count:8},{id:'Semis',count:4},{id:'final',count:2}];
+    const fc=[{id:'16vos',count:32},{id:'8vos',count:16},{id:'4tos',count:8},{id:'semis',count:4},{id:'final',count:2}];
     fc.forEach(f=>{
       const cont=document.getElementById(f.id+'-container');if(!cont)return;
       const ops=getAvailableTeams(f.id);let html='';
@@ -648,15 +638,15 @@ function buildResultsUI() {
   
   window.refreshFaseSelects=function(){
     'ABCDEFGHIJKL'.split('').forEach(g=>{for(let p=1;p<=3;p++){const el=document.getElementById('r_g_'+g+'_'+p);if(el)realResults['g_'+g+'_'+p]=el.value;}});
-    const fc=[{id:'16vos',max:32},{id:'8vos',max:16},{id:'4tos',max:8},{id:'Semis',max:4},{id:'final',max:2}];
-    fc.forEach(f=>{for(let i=1;i<=f.max;i++){const el=document.getElementById('r_fase_'+f.id+'_'+i);if(el)realResults['fase_'+f.id+'_'+i]=el.value;}});
+    ['16vos','8vos','4tos','semis','final'].forEach(fase=>{const max=fase==='16vos'?16:fase==='8vos'?8:fase==='4tos'?4:fase==='semis'?4:2;for(let i=1;i<=max;i++){const el=document.getElementById('r_fase_'+fase+'_'+i);if(el)realResults['fase_'+fase+'_'+i]=el.value;}});
     renderFaseContainers();renderPremiosSelects();
   };
+  
   renderFaseContainers();
   
   function renderPremiosSelects(){
     const finalistas=new Set();for(let i=1;i<=2;i++){const v=realResults['fase_final_'+i];if(v)finalistas.add(v);}
-    const semifinalistas=new Set();for(let i=1;i<=4;i++){const v=realResults['fase_Semis_'+i];if(v) semifinalistas.add(v);}
+    const semifinalistas=new Set();for(let i=1;i<=4;i++){const v=realResults['fase_semis_'+i];if(v)semifinalistas.add(v);}
     const goleadoresProns=new Set();const porterosProns=new Set();
     for(const key in PRONOSTICOS.participants){const p=PRONOSTICOS.participants[key];if(p.premios['Goleador'])goleadoresProns.add(p.premios['Goleador'].trim());if(p.premios['Portero'])porterosProns.add(p.premios['Portero'].trim());}
     const prizesData=[
@@ -668,7 +658,7 @@ function buildResultsUI() {
       {k:'portero',label:'Guante de Oro',icon:'🧤',opciones:Array.from(porterosProns).sort()},
     ];
     const pc=document.getElementById('premios-container'); if(!pc) return; pc.innerHTML='';
-    prizesData.forEach(p=>{pc.innerHTML+=`<div class="premio-card"><span class="premio-icon">${p.icon}</span><div class="premio-info"><div class="premio-label">${p.label}</div>${makeSelect('r_premio_'+p.k,p.opciones,realResults['premio_'+p.k]||'',`realResults['premio_${p.k}']=this.value`)}</div></div>`;});
+    prizesData.forEach(p=>{pc.innerHTML+=`<div class="premio-card"><span class="premio-icon">${p.icon}</span><div class="premio-info"><div class="premio-label">${p.label}</div>${makeSelect('r_premio_'+p.k,p.opciones,realResults['premio_'+p.k]||'',"realResults['premio_"+p.k+"']=this.value")}</div></div>`;});
   }
   renderPremiosSelects();
 }
@@ -713,11 +703,11 @@ function calcular() {
   collectAllInputs();
   const S=getScoring();
   
-  const realSet16 = new Set(); for (let i = 1; i <= 32; i++) { const v = realResults['fase_16vos_' + i]; if (v) realSet16.add(normalizeTeam(v)); }
-  const realSet8  = new Set(); for (let i = 1; i <= 16; i++) { const v = realResults['fase_8vos_' + i];  if (v) realSet8.add(normalizeTeam(v)); }
-  const realSet4  = new Set(); for (let i = 1; i <= 8; i++) { const v = realResults['fase_4tos_' + i];  if (v) realSet4.add(normalizeTeam(v)); }
-  const realSetSemi=new Set(); for (let i = 1; i <= 4; i++) { const v = realResults['fase_Semis_' + i]; if (v) realSetSemi.add(normalizeTeam(v)); }
-  const realSetFin =new Set(); for (let i = 1; i <= 2; i++) { const v = realResults['fase_final_' + i]; if (v) realSetFin.add(normalizeTeam(v)); }
+  const real16=new Set();for(let i=1;i<=32;i++){const v=realResults['fase_16vos_'+i];if(v)real16.add(normalizeTeam(v));}
+  const real8=new Set();for(let i=1;i<=16;i++){const v=realResults['fase_8vos_'+i];if(v)real8.add(normalizeTeam(v));}
+  const real4=new Set();for(let i=1;i<=8;i++){const v=realResults['fase_4tos_'+i];if(v)real4.add(normalizeTeam(v));}
+  const realSemis=new Set();for(let i=1;i<=4;i++){const v=realResults['fase_Semis_'+i];if(v)realSemis.add(normalizeTeam(v));}
+  const realFinal=new Set();for(let i=1;i<=2;i++){const v=realResults['fase_final_'+i];if(v)realFinal.add(normalizeTeam(v));}
   
   const realCampeon=normalizeTeam(realResults['premio_campeon']||'');
   const realSub=normalizeTeam(realResults['premio_sub']||'');
@@ -735,23 +725,27 @@ function calcular() {
     let ptsPartidos=0,ptsGrupos=0,ptsFase=0,ptsPremios=0;
     const detalles={partidos:[],grupos:[],fase:[],premios:[]};
     
+    // 1. Partidos
     for(let i=1;i<=72;i++){
       const rr=realResults['m_'+i]||'';const pron=p.partidos[String(i)]||'';
-      if(!rr||!pron)continue; const {pts}=scoreMatch(pron,rr,S);
-      ptsPartidos+=pts; detalles.partidos.push({n:i,pron,real:rr,pts});
+      if(!rr||!pron)continue;
+      const sc=scoreMatch(pron,rr,S);
+      ptsPartidos+=sc.pts;
+      detalles.partidos.push({n:i,pron,real:rr,pts:sc.pts,detail:sc.detail||''});
     }
     
+    // 2. Grupos
     'ABCDEFGHIJKL'.split('').forEach(g=>{
       for(let pos=1;pos<=3;pos++){
         const pPred=normalizeTeam((p.clasificados[g]&&p.clasificados[g][String(pos)])||'');
         const rPred=realClasif[g]&&realClasif[g][pos]||'';
         if(!rPred||!pPred)continue;
         const match=pPred===rPred;const pts=match?(pos===1?S.p_1ro:pos===2?S.p_2do:S.p_3ro):0;
-        ptsGrupos+=pts; if(match||rPred)detalles.grupos.push({g,pos,pred:p.clasificados[g][String(pos)],real:realResults['g_'+g+'_'+pos],pts,match});
+        ptsGrupos+=pts;if(match||rPred)detalles.grupos.push({g,pos,pred:p.clasificados[g][String(pos)],real:realResults['g_'+g+'_'+pos],pts,match});
       }
     });
     
-  // Dieciseisavos automáticos basados en lo elegido en grupos
+    // 3. DIECISEISAVOS (Mapea los 36 equipos y los inyecta todos en el detalle)
     const pred16 = new Set();
     'ABCDEFGHIJKL'.split('').forEach(g => {
       for(let pos=1;pos<=3;pos++){
@@ -759,47 +753,58 @@ function calcular() {
         if(t) pred16.add(t);
       }
     });
+    
     pred16.forEach(eq => {
       const nt = normalizeTeam(eq);
-      if(realSet16.has(nt)){
-        ptsFase += S.p_16vos; // <- AQUÍ: Ahora suma dinámicamente los puntos configurados
-        detalles.fase.push({fase:'Dieciseisavos de final', equipo:eq, pts:S.p_16vos, hit:true});
-      }
+      const hit = real16.has(nt);
+      if(hit) ptsFase += S.p_16vos;
+      detalles.fase.push({fase:'Dieciseisavos', equipo:eq, pts:hit?S.p_16vos:0, hit:hit});
     });
     
+    // 4. ELIMINATORIAS DIRECTAS (Lee el JSON y compara con tus claves reales)
     const fases = [
-      { fase: '8vos',  set: realSet8,    pts: S.p_16vos, label: 'Octavos de Final' },
-      { fase: '4tos',  set: realSet4,    pts: S.p_8vos,  label: 'Cuartos de Final' },
-      { fase: 'Semis', set: realSetSemi, pts: S.p_4tos,  label: 'Semifinales' },
-      { fase: 'Final', set: realSetFin,  pts: S.p_final, label: 'Final' }
+      { fase: '8vos',  set: real8,     pts: S.p_8vos,  label: 'Octavos' },
+      { fase: '4tos',  set: real4,     pts: S.p_4tos,  label: 'Cuartos' },
+      { fase: 'Semis', set: realSemis, pts: (S.p_semis || 16), label: 'Semifinales' },
+      { fase: 'Final', set: realFinal, pts: S.p_final, label: 'Final' }
     ];
     
     fases.forEach(({fase,set,pts,label})=>{
       (p.fase_final[fase]||[]).forEach(equipo=>{
-        const nt=normalizeTeam(equipo); if(!nt||set.size===0)return;
-        const hit=set.has(nt); if(hit) ptsFase+=pts;
-        detalles.fase.push({fase:label,equipo,pts:hit?pts:0,hit});
+        const nt=normalizeTeam(equipo);
+        if(!nt)return;
+        const hit=set.has(nt);
+        if(hit) ptsFase+=pts;
+        detalles.fase.push({fase:label, equipo, pts:hit?pts:0, hit:hit});
       });
     });
     
-    const prizesCheck=[
+    // 5. Premios
+    const premiosCheck=[
       {pred:normalizeTeam(p.premios['Campeón']||''),real:realCampeon,pts:S.p_campeon,label:'Campeón',rk:'campeon'},
-      {pred:normalizeTeam(p.premios['Subcampeón']||''),real:realSub,pts:S.p_sub,label:'Subcampeon',rk:'sub'},
+      {pred:normalizeTeam(p.premios['Subcampeón']||''),real:realSub,pts:S.p_sub,label:'Subcampeón',rk:'sub'},
       {pred:normalizeTeam(p.premios['3er puesto']||''),real:real3er,pts:S.p_3er,label:'3er puesto',rk:'3er'},
       {pred:normalizeTeam(p.premios['4to puesto']||''),real:real4to,pts:S.p_4to,label:'4to puesto',rk:'4to'},
       {pred:normalizeTeam(p.premios['Goleador']||''),real:realGol,pts:S.p_goleador,label:'Goleador',rk:'goleador'},
       {pred:normalizeTeam(p.premios['Portero']||''),real:realPort,pts:S.p_portero,label:'Portero',rk:'portero'},
     ];
-    prizesCheck.forEach(({pred,real,pts,label,rk})=>{
-      if(!pred)return; const hit=real&&pred===real; if(hit) ptsPremios+=pts;
+    premiosCheck.forEach(({pred,real,pts,label,rk})=>{
+      if(!pred)return;const hit=real&&pred===real;if(hit)ptsPremios+=pts;
       if(hit||real)detalles.premios.push({label,pred:p.premios[label]||'—',real:realResults['premio_'+rk]||'—',pts:hit?pts:0,hit});
     });
     
     results.push({nombre:p.nombre,total:ptsPartidos+ptsGrupos+ptsFase+ptsPremios,ptsPartidos,ptsGrupos,ptsFase,ptsPremios,detalles,key});
   }
+  
   results.sort((a,b)=>b.total-a.total||(b.ptsPremios-a.ptsPremios));
-  rankingCache=results; renderRanking(results); buildParticipantsGrid();
-  try{ localStorage.setItem('mundial2026_ranking', JSON.stringify(results)); localStorage.setItem('mundial2026_ranking_ts', new Date().toLocaleString('es-ES')); }catch(e){}
+  rankingCache=results;
+  renderRanking(results);
+  buildParticipantsGrid();
+  
+  try {
+    localStorage.setItem('mundial2026_ranking', JSON.stringify(results));
+    localStorage.setItem('mundial2026_ranking_ts', new Date().toLocaleString('es-ES'));
+  } catch(e){}
 }
 
 function renderRanking(results) {
@@ -907,7 +912,7 @@ function showProns(key) {
   document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Pronósticos Completos';
   let html = '';
 
-  // 1. BLOQUE DE PARTIDOS DE GRUPOS
+  // 1. Bloque de Partidos de Grupos individuales
   html += `<div class="detail-section"><h4>⚽ Pronósticos Partidos de Grupos</h4>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;max-height:220px;overflow-y:auto;background:var(--card2);padding:10px;border-radius:6px;border:1px solid var(--border);margin-bottom:12px;">`;
   for(let i=1; i<=72; i++){
@@ -923,7 +928,7 @@ function showProns(key) {
   }
   html += `</div></div>`;
 
-  // 2. BLOQUE DE CLASIFICACIÓN DE GRUPOS (1º, 2º, 3º)
+  // 2. Bloque de las posiciones de Grupos (1º, 2º, 3º)
   html += `<div class="detail-section"><h4>🏆 Posiciones en Grupos</h4>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:12px;">`;
   'ABCDEFGHIJKL'.split('').forEach(g => {
@@ -942,24 +947,27 @@ function showProns(key) {
   });
   html += `</div></div>`;
 
-  // 3. BLOQUE DE DIECISEISAVOS DE FINAL AUTOMÁTICOS
+  // 3. Muestra los 36 equipos mapeados para la predicción de dieciseisavos
   html += `<div class="detail-section"><h4>🥊 Dieciseisavos de final (Clasificados de Grupo)</h4>
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;">`;
+  
   const equiposDieciseisavos = new Set();
   'ABCDEFGHIJKL'.split('').forEach(g => { for(let pos=1;pos<=3;pos++) { const t = p.clasificados[g] && p.clasificados[g][String(pos)]; if(t) equiposDieciseisavos.add(t); } });
+  
   const realSet16 = new Set(); for (let i = 1; i <= 32; i++) { const v = realResults['fase_16vos_' + i]; if (v) realSet16.add(normalizeTeam(v)); }
+
   Array.from(equiposDieciseisavos).sort().forEach(eq => {
     const hit = realSet16.has(normalizeTeam(eq)); const colorEq = realSet16.size > 0 ? (hit ? '#86efac' : '#f87171') : 'var(--text)';
     html += `<div style="font-size:0.8rem;color:${colorEq}">${obtenerBandera(eq)}${eq} ${hit ? '✓' : ''}</div>`;
   });
   html += `</div></div></div>`;
 
-  // 4. RESTO DE RONDAS ELIMINATORIAS DIRECTAS
+  // 4. Rondas Eliminatorias Directas emparejadas con las claves de base de datos
   const fasesLabels = [
     { k: '8vos',  label: 'Octavos de Final', realKey: '8vos',  max: 16 },
     { k: '4tos',  label: 'Cuartos de Final', realKey: '4tos',  max: 8 },
-    { k: 'Semis', label: 'Semifinales',     realKey: 'Semis', max: 4 },
+    { k: 'Semis', label: 'Semifinales',     realKey: 'semis', max: 4 }, // Vinculado a 'fase_semis_' en minúscula
     { k: 'Final', label: 'Final del Torneo',realKey: 'final', max: 2 }
   ];
   html += `<div class="detail-section"><h4>🥊 Rondas Eliminatorias Directas</h4><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:6px">`;

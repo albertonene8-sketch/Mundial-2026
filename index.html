@@ -912,18 +912,42 @@ function showProns(key) {
   document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Pronósticos Completos';
   let html = '';
 
-  // 1. Bloque de Partidos de Grupos individuales
+// 1. Bloque de Partidos de Grupos individuales (Con banderas y colores dinámicos)
   html += `<div class="detail-section"><h4>⚽ Pronósticos Partidos de Grupos</h4>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;max-height:220px;overflow-y:auto;background:var(--card2);padding:10px;border-radius:6px;border:1px solid var(--border);margin-bottom:12px;">`;
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:6px;max-height:240px;overflow-y:auto;background:var(--card2);padding:10px;border-radius:6px;border:1px solid var(--border);margin-bottom:12px;">`;
   for(let i=1; i<=72; i++){
     const m = PRONOSTICOS.matches[String(i)];
     const pron = p.partidos[String(i)] || '—';
     const real = realResults['m_'+i] || '—';
-    let color = 'var(--text)';
-    if(real !== '—') color = (pron === real) ? '#86efac' : 'var(--muted)';
-    html += `<div style="font-size:0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);padding:3px 0;display:flex;justify-content:space-between;">
-      <span>${i}. ${m.equipo1} vs ${m.equipo2}</span>
-      <span style="color:${color};font-family:monospace;">${pron} (Real: ${real})</span>
+    
+    let bgRow = 'transparent';
+    let borderRow = 'rgba(255,255,255,0.05)';
+    const pParsed = parseScore(pron);
+    const rParsed = parseScore(real);
+    
+    if (pParsed && rParsed) {
+      const exacto = (pParsed[0] === rParsed[0] && pParsed[1] === rParsed[1]);
+      const signo = getSign(pParsed[0], pParsed[1]) === getSign(rParsed[0], rParsed[1]);
+      if (exacto) {
+        bgRow = 'rgba(0, 166, 81, 0.15)'; // Verde: Resultado exacto
+        borderRow = 'rgba(0, 166, 81, 0.3)';
+      } else if (signo) {
+        bgRow = 'rgba(245, 166, 35, 0.15)'; // Naranja: Acertó Ganador/Empate
+        borderRow = 'rgba(245, 166, 35, 0.3)';
+      } else {
+        bgRow = 'rgba(232, 65, 66, 0.08)'; // Rojo: Fallo total
+        borderRow = 'rgba(232, 65, 66, 0.2)';
+      }
+    }
+
+    html += `<div style="font-size:0.8rem; background:${bgRow}; border:1px solid ${borderRow}; padding:6px 8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="display:flex; align-items:center; gap:2px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        <strong style="color:var(--muted); margin-right:4px;">${i}.</strong>
+        ${obtenerBandera(m.equipo1)}${m.equipo1} <span style="color:var(--muted);font-size:0.75rem;margin:0 2px;">vs</span> ${obtenerBandera(m.equipo2)}${m.equipo2}
+      </span>
+      <span style="font-family:monospace; font-weight:700; flex-shrink:0; margin-left:8px;">
+        ${pron} <span style="color:var(--muted); font-weight:400; font-size:0.75rem;">(${real})</span>
+      </span>
     </div>`;
   }
   html += `</div></div>`;

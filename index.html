@@ -237,11 +237,11 @@
   <div class="match-grid" id="matches-container"></div>
   <div class="fase-header"><h3>🏆 Clasificados por grupo</h3><span class="badge">12 grupos</span></div>
   <div class="grupos-grid" id="grupos-container"></div>
-  <div class="fase-header"><h3>🥊 Dieciseisavos de final</h3><span class="badge">16 equipos</span></div>
+  <div class="fase-header"><h3>🥊 Dieciseisavos de final</h3><span class="badge">32 equipos</span></div>
   <div class="fases-grid" id="16vos-container"></div>
-  <div class="fase-header"><h3>🥊 Octavos de final</h3><span class="badge">8 equipos</span></div>
+  <div class="fase-header"><h3>🥊 Octavos de final</h3><span class="badge">16 equipos</span></div>
   <div class="fases-grid" id="8vos-container"></div>
-  <div class="fase-header"><h3>🥊 Cuartos de final</h3><span class="badge">4 equipos</span></div>
+  <div class="fase-header"><h3>🥊 Cuartos de final</h3><span class="badge">8 equipos</span></div>
   <div class="fases-grid" id="4tos-container"></div>
   <div class="fase-header"><h3>🥊 Semifinales</h3><span class="badge">4 equipos</span></div>
   <div class="fases-grid" id="semis-container"></div>
@@ -900,6 +900,8 @@ function showDetail(key) {
 
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal').classList.add('open');
+}
+
 function showProns(key) {
   const p = PRONOSTICOS.participants[key]; if(!p) return;
   document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Pronósticos Completos';
@@ -945,6 +947,17 @@ function showProns(key) {
   document.getElementById('modal-body').innerHTML = html;
   document.getElementById('modal').classList.add('open');
 }
+
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if(!btn) return;
+  const key = btn.dataset.key;
+  const action = btn.dataset.action;
+  if(action === 'pts') showDetail(key);
+  if(action === 'pron') showProns(key);
+});
 
 // Corrección de visualización al cambiar pestañas
 function showTab(tab){

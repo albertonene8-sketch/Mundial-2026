@@ -908,11 +908,13 @@ function showDetail(key) {
 }
 
 function (key) {
-  const p = PRONOSTICOS.participants[key]; if(!p) return;
-  document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Pronósticos Completos';
+function showProns(key) {
+  const p = PRONOSTICOS.participants[key];
+  if(!p) return;
+  document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Todos los pronósticos';
   let html = '';
 
- html += `<div class="detail-section">
+  html += `<div class="detail-section">
     <h4>⚽ Partidos de fase de grupos (72 partidos)</h4>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:3px;margin-top:6px">`;
   for(let i=1;i<=72;i++){
@@ -934,7 +936,7 @@ function (key) {
   }
   html += '</div></div>';
 
-  // 2. Bloque de las posiciones de Grupos (1º, 2º, 3º)
+  // 2. Posiciones en Grupos
   html += `<div class="detail-section"><h4>🏆 Posiciones en Grupos</h4>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:12px;">`;
   'ABCDEFGHIJKL'.split('').forEach(g => {
@@ -953,7 +955,7 @@ function (key) {
   });
   html += `</div></div>`;
 
-  // 3. Muestra los 36 equipos mapeados para la predicción de dieciseisavos
+  // 3. Dieciseisavos de final
   html += `<div class="detail-section"><h4>🥊 Dieciseisavos de final (Clasificados de Grupo)</h4>
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;">`;
@@ -969,14 +971,14 @@ function (key) {
   });
   html += `</div></div></div>`;
 
-  // 4. Rondas Eliminatorias Directas emparejadas con las claves de base de datos
+  // 4. Rondas Eliminatorias Directas
   const fasesLabels = [
     { k: '8vos',  label: 'Octavos de Final', realKey: '8vos',  max: 16 },
     { k: '4tos',  label: 'Cuartos de Final', realKey: '4tos',  max: 8 },
-    { k: 'Semis', label: 'Semifinales',     realKey: 'semis', max: 4 }, // Vinculado a 'fase_semis_' en minúscula
+    { k: 'Semis', label: 'Semifinales',     realKey: 'Semis', max: 4 },
     { k: 'Final', label: 'Final del Torneo',realKey: 'final', max: 2 }
   ];
-  html += `<div class="detail-section"><h4>🥊 Rondas Eliminatorias Directas</h4><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:6px">`;
+  html += `<div class="detail-section"><h4>🥊 Rondas Eliminatorias Directas</h4><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:6px;margin-bottom:12px;">`;
   fasesLabels.forEach(({ k, label, realKey, max }) => {
     const equipos = (p.fase_final[k] || []); if (!equipos.length) return;
     const realSet = new Set(); for (let i = 1; i <= max; i++) { const v = realResults['fase_' + realKey + '_' + i]; if (v) realSet.add(normalizeTeam(v)); }
@@ -988,34 +990,38 @@ function (key) {
     });
     html += `</div>`;
   });
-  
   html += `</div></div>`;
-  const premMap=[
-    {k:'Campeón',rk:'campeon',icon:'🏆'},
-    {k:'Subcampeón',rk:'sub',icon:'🥈'},
-    {k:'3er puesto',rk:'3er',icon:'🥉'},
-    {k:'4to puesto',rk:'4to',icon:'4️⃣'},
-    {k:'Goleador',rk:'goleador',icon:'⚽'},
-    {k:'Portero',rk:'portero',icon:'🧤'},
+
+  // 5. Premios Especiales
+  const premiosCheck = [
+    { label: 'Campeón', pred: p.premios['Campeón'] || '—', real: realResults['premio_campeon'] || '—' },
+    { label: 'Subcampeón', pred: p.premios['Subcampeón'] || '—', real: realResults['premio_sub'] || '—' },
+    { label: '3er puesto', pred: p.premios['3er puesto'] || '—', real: realResults['premio_3er'] || '—' },
+    { label: '4to puesto', pred: p.premios['4to puesto'] || '—', real: realResults['premio_4to'] || '—' },
+    { label: 'Máx. Goleador', pred: p.premios['Goleador'] || '—', real: realResults['premio_goleador'] || '—' },
+    { label: 'Guante de Oro', pred: p.premios['Portero'] || '—', real: realResults['premio_portero'] || '—' }
   ];
-  html+=`<div class="detail-section"><h4>🥇 Premios especiales</h4>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:6px">`;
-  premMap.forEach(({k,rk,icon})=>{
-    const pred=p.premios[k]||'—';
-    const real=realResults['premio_'+rk]||'';
-    const hit=real&&normalizeTeam(pred)===normalizeTeam(real);
-    html+=`<div style="background:var(--card2);border:1px solid ${hit?'#00a65155':real?'#e8414233':' var(--border)'};border-radius:6px;padding:8px;display:flex;align-items:center;gap:8px">
-      <span style="font-size:1.2rem">${icon}</span>
-      <div>
-        <div style="font-size:0.7rem;color:var(--muted);margin-bottom:2px">${k}</div>
-        <div style="display:flex;align-items:center;gap:4px;">
-          ${obtenerBandera(pred)}<div style="font-size:0.88rem;font-weight:700;color:${hit?'#86efac':real?'#f87171':'var(--text)'}">${pred}</div>
-        </div>
-        ${real&&!hit?`<div style="font-size:0.7rem;color:var(--muted);display:flex;align-items:center;gap:4px;">Real: ${obtenerBandera(real)} ${real}</div>`:''}
-      </div>
+
+  html += `<div class="detail-section"><h4>🥇 Premios Especiales</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:6px;">`;
+  premiosCheck.forEach(premio => {
+    let colorEq = 'var(--text)';
+    let hitMark = '';
+    
+    // Si ya se ha rellenado el resultado real de este premio
+    if (premio.real !== '—') {
+        const hit = normalizeTeam(premio.pred) === normalizeTeam(premio.real);
+        colorEq = hit ? '#86efac' : '#f87171'; // Verde acierto, rojo fallo
+        hitMark = hit ? ' ✓' : '';
+    }
+    
+    html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:10px;">
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;">${premio.label}</div>
+      <div style="font-size:0.85rem;font-weight:600;color:${colorEq};">${obtenerBandera(premio.pred)}${premio.pred}${hitMark}</div>
     </div>`;
   });
-  html+='</div></div>';
+  html += `</div></div>`;
+
   document.getElementById('modal-body').innerHTML = html;
   document.getElementById('modal').classList.add('open');
 }

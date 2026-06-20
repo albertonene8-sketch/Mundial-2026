@@ -1024,9 +1024,10 @@ function showProns(key) {
     let colorEq = 'var(--text)';
     let hitMark = '';
     
+    // Si ya se ha rellenado el resultado real de este premio
     if (premio.real !== '—') {
         const hit = normalizeTeam(premio.pred) === normalizeTeam(premio.real);
-        colorEq = hit ? '#86efac' : '#f87171';
+        colorEq = hit ? '#86efac' : '#f87171'; // Verde acierto, rojo fallo
         hitMark = hit ? ' ✓' : '';
     }
     

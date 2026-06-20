@@ -907,7 +907,7 @@ function showDetail(key) {
   document.getElementById('modal').classList.add('open');
 }
 
-function showProns(key) {
+function (key) {
   const p = PRONOSTICOS.participants[key]; if(!p) return;
   document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Pronósticos Completos';
   let html = '';
@@ -990,10 +990,7 @@ function showProns(key) {
   });
   
   html += `</div></div>`;
-  document.getElementById('modal-body').innerHTML = html;
-  document.getElementById('modal').classList.add('open');
-}
-const premMap=[
+  const premMap=[
     {k:'Campeón',rk:'campeon',icon:'🏆'},
     {k:'Subcampeón',rk:'sub',icon:'🥈'},
     {k:'3er puesto',rk:'3er',icon:'🥉'},
@@ -1019,6 +1016,10 @@ const premMap=[
     </div>`;
   });
   html+='</div></div>';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+}
+
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 
 document.addEventListener('click', function(e) {

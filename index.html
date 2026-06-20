@@ -309,7 +309,7 @@
 // ═══════════════════════════════════════════════════════
 // CONFIGURACIÓN — JSONBin vinculado correctamente
 // ═══════════════════════════════════════════════════════
-const JSONBIN_KEY  = '$2a$10$EtValGHmrPAwqNo7KfxCjOZ5YSipVYPRc6fr1NaTmDvYU4FWu/Vpe.'; 
+const JSONBIN_KEY  = '$2a$10$EtValGHmrPAwqNo7KfxCjOZ5YSipVYPRc6fr1NaTmDvYU4FWu/Vpe'; 
 const JSONBIN_BIN  = '6a36bf0ff5f4af5e2914ed89';          
 const ADMIN_PASS   = 'NeneyAlan26';
 
@@ -591,7 +591,7 @@ function buildResultsUI() {
   for(let i=1;i<=72;i++){
     const m=PRONOSTICOS.matches[String(i)];
     const val=realResults['m_'+i]||'';
-    mc.innerHTML+=`<div class="match-row${val?' has-result':''}" id="row_m_${i}"><span class="match-num">${i}</span><span class="match-teams">${obtenerBandera(m.equipo1)}${m.equipo1}<span>vs</span>${obtenerBandera(m.equipo2)}${m.equipo2}</span><input class="result-input${val?' filled':''}" id="r_m_'+i+'" id="r_m_${i}" value="${val}" placeholder="2-1" oninput="onMatchInput(${i},this)"></div>`;
+    mc.innerHTML+=`<div class="match-row${val?' has-result':''}" id="row_m_${i}"><span class="match-num">${i}</span><span class="match-teams">${obtenerBandera(m.equipo1)}${m.equipo1}<span>vs</span>${obtenerBandera(m.equipo2)}${m.equipo2}</span><input class="result-input${val?' filled':''}" id="r_m_${i}" value="${val}" placeholder="2-1" oninput="onMatchInput(${i},this)"></div>`;
   }
   
   const equiposPorGrupo={};
@@ -1005,11 +1005,7 @@ document.addEventListener('click', function(e) {
   if(action === 'pron') showProns(key);
 });
 
-// Corrección de visualización al cambiar pestañas
 function showTab(tab){
-  const tabs=['clasificacion','pronosticos','resultados','puntuacion'];
-  
-  // Manejo visual de pestañas existentes
   document.querySelectorAll('.tab').forEach(t => {
     if(t.id === 'adminTabBtn') return;
     const txt = t.textContent.toLowerCase();

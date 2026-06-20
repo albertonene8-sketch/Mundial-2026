@@ -1010,12 +1010,12 @@ function showProns(key) {
 
   // 5. Premios Especiales
   const premiosCheck = [
-    { label: 'Campeón', pred: p.premios['Campeón'] || '—', real: realResults['premio_campeon'] || '—' },
-    { label: 'Subcampeón', pred: p.premios['Subcampeón'] || '—', real: realResults['premio_sub'] || '—' },
-    { label: '3er puesto', pred: p.premios['3er puesto'] || '—', real: realResults['premio_3er'] || '—' },
-    { label: '4to puesto', pred: p.premios['4to puesto'] || '—', real: realResults['premio_4to'] || '—' },
-    { label: 'Máx. Goleador', pred: p.premios['Goleador'] || '—', real: realResults['premio_goleador'] || '—' },
-    { label: 'Guante de Oro', pred: p.premios['Portero'] || '—', real: realResults['premio_portero'] || '—' }
+  { label: 'Campeón', icon: '🏆', pred: p.premios['Campeón'] || '—', real: realResults['premio_campeon'] || '—' },
+    { label: 'Subcampeón', icon: '🥈', pred: p.premios['Subcampeón'] || '—', real: realResults['premio_sub'] || '—' },
+    { label: '3er puesto', icon: '🥉', pred: p.premios['3er puesto'] || '—', real: realResults['premio_3er'] || '—' },
+    { label: '4to puesto', icon: '4️⃣', pred: p.premios['4to puesto'] || '—', real: realResults['premio_4to'] || '—' },
+    { label: 'Máx. Goleador', icon: '⚽', pred: p.premios['Goleador'] || '—', real: realResults['premio_goleador'] || '—' },
+    { label: 'Guante de Oro', icon: '🧤', pred: p.premios['Portero'] || '—', real: realResults['premio_portero'] || '—' }
   ];
 
   html += `<div class="detail-section"><h4>🥇 Premios Especiales</h4>

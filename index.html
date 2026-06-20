@@ -751,7 +751,7 @@ function calcular() {
       }
     });
     
-    // Dieciseisavos automáticos basados en lo elegido en grupos
+  // Dieciseisavos automáticos basados en lo elegido en grupos
     const pred16 = new Set();
     'ABCDEFGHIJKL'.split('').forEach(g => {
       for(let pos=1;pos<=3;pos++){
@@ -762,8 +762,8 @@ function calcular() {
     pred16.forEach(eq => {
       const nt = normalizeTeam(eq);
       if(realSet16.has(nt)){
-        ptsFase += 2; // Otorga 2 puntos estándar por estar clasificado en 16vos reales
-        detalles.fase.push({fase:'Dieciseisavos de final', equipo:eq, pts:2, hit:true});
+        ptsFase += S.p_16vos; // <- AQUÍ: Ahora suma dinámicamente los puntos configurados
+        detalles.fase.push({fase:'Dieciseisavos de final', equipo:eq, pts:S.p_16vos, hit:true});
       }
     });
     
@@ -907,33 +907,65 @@ function showProns(key) {
   document.getElementById('modal-title').textContent = '📋 ' + p.nombre + ' — Pronósticos Completos';
   let html = '';
 
+  // 1. BLOQUE DE PARTIDOS DE GRUPOS
+  html += `<div class="detail-section"><h4>⚽ Pronósticos Partidos de Grupos</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;max-height:220px;overflow-y:auto;background:var(--card2);padding:10px;border-radius:6px;border:1px solid var(--border);margin-bottom:12px;">`;
+  for(let i=1; i<=72; i++){
+    const m = PRONOSTICOS.matches[String(i)];
+    const pron = p.partidos[String(i)] || '—';
+    const real = realResults['m_'+i] || '—';
+    let color = 'var(--text)';
+    if(real !== '—') color = (pron === real) ? '#86efac' : 'var(--muted)';
+    html += `<div style="font-size:0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);padding:3px 0;display:flex;justify-content:space-between;">
+      <span>${i}. ${m.equipo1} vs ${m.equipo2}</span>
+      <span style="color:${color};font-family:monospace;">${pron} (Real: ${real})</span>
+    </div>`;
+  }
+  html += `</div></div>`;
+
+  // 2. BLOQUE DE CLASIFICACIÓN DE GRUPOS (1º, 2º, 3º)
+  html += `<div class="detail-section"><h4>🏆 Posiciones en Grupos</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:12px;">`;
+  'ABCDEFGHIJKL'.split('').forEach(g => {
+    html += `<div style="background:var(--card2);padding:8px;border-radius:6px;border:1px solid var(--border);">
+      <div style="font-size:0.75rem;font-weight:700;color:var(--oro);margin-bottom:4px;">Grupo ${g}</div>`;
+    for(let pos=1; pos<=3; pos++){
+      const predEq = p.clasificados[g] && p.clasificados[g][String(pos)] || '—';
+      const realEq = realResults['g_'+g+'_'+pos] || '—';
+      const hit = (normalizeTeam(predEq) === normalizeTeam(realEq)) && realEq !== '—';
+      const colorEq = realEq !== '—' ? (hit ? '#86efac' : '#f87171') : 'var(--text)';
+      html += `<div style="font-size:0.78rem;color:${colorEq};margin-bottom:2px;">
+        ${pos}º: ${obtenerBandera(predEq)}${predEq} ${hit?'✓':''}
+      </div>`;
+    }
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+
+  // 3. BLOQUE DE DIECISEISAVOS DE FINAL AUTOMÁTICOS
   html += `<div class="detail-section"><h4>🥊 Dieciseisavos de final (Clasificados de Grupo)</h4>
-    <div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:6px;">
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;">`;
-  
   const equiposDieciseisavos = new Set();
   'ABCDEFGHIJKL'.split('').forEach(g => { for(let pos=1;pos<=3;pos++) { const t = p.clasificados[g] && p.clasificados[g][String(pos)]; if(t) equiposDieciseisavos.add(t); } });
-  
   const realSet16 = new Set(); for (let i = 1; i <= 32; i++) { const v = realResults['fase_16vos_' + i]; if (v) realSet16.add(normalizeTeam(v)); }
-
   Array.from(equiposDieciseisavos).sort().forEach(eq => {
     const hit = realSet16.has(normalizeTeam(eq)); const colorEq = realSet16.size > 0 ? (hit ? '#86efac' : '#f87171') : 'var(--text)';
     html += `<div style="font-size:0.8rem;color:${colorEq}">${obtenerBandera(eq)}${eq} ${hit ? '✓' : ''}</div>`;
   });
   html += `</div></div></div>`;
 
+  // 4. RESTO DE RONDAS ELIMINATORIAS DIRECTAS
   const fasesLabels = [
     { k: '8vos',  label: 'Octavos de Final', realKey: '8vos',  max: 16 },
     { k: '4tos',  label: 'Cuartos de Final', realKey: '4tos',  max: 8 },
     { k: 'Semis', label: 'Semifinales',     realKey: 'Semis', max: 4 },
     { k: 'Final', label: 'Final del Torneo',realKey: 'final', max: 2 }
   ];
-
   html += `<div class="detail-section"><h4>🥊 Rondas Eliminatorias Directas</h4><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:6px">`;
   fasesLabels.forEach(({ k, label, realKey, max }) => {
     const equipos = (p.fase_final[k] || []); if (!equipos.length) return;
     const realSet = new Set(); for (let i = 1; i <= max; i++) { const v = realResults['fase_' + realKey + '_' + i]; if (v) realSet.add(normalizeTeam(v)); }
-
     html += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:10px">
       <div style="font-size:0.75rem;font-weight:800;color:var(--oro);margin-bottom:6px;text-transform:uppercase">${label}</div>`;
     equipos.forEach(eq => {

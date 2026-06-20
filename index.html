@@ -993,7 +993,32 @@ function showProns(key) {
   document.getElementById('modal-body').innerHTML = html;
   document.getElementById('modal').classList.add('open');
 }
-
+const premMap=[
+    {k:'Campeón',rk:'campeon',icon:'🏆'},
+    {k:'Subcampeón',rk:'sub',icon:'🥈'},
+    {k:'3er puesto',rk:'3er',icon:'🥉'},
+    {k:'4to puesto',rk:'4to',icon:'4️⃣'},
+    {k:'Goleador',rk:'goleador',icon:'⚽'},
+    {k:'Portero',rk:'portero',icon:'🧤'},
+  ];
+  html+=`<div class="detail-section"><h4>🥇 Premios especiales</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:6px">`;
+  premMap.forEach(({k,rk,icon})=>{
+    const pred=p.premios[k]||'—';
+    const real=realResults['premio_'+rk]||'';
+    const hit=real&&normalizeTeam(pred)===normalizeTeam(real);
+    html+=`<div style="background:var(--card2);border:1px solid ${hit?'#00a65155':real?'#e8414233':' var(--border)'};border-radius:6px;padding:8px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:1.2rem">${icon}</span>
+      <div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-bottom:2px">${k}</div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          ${obtenerBandera(pred)}<div style="font-size:0.88rem;font-weight:700;color:${hit?'#86efac':real?'#f87171':'var(--text)'}">${pred}</div>
+        </div>
+        ${real&&!hit?`<div style="font-size:0.7rem;color:var(--muted);display:flex;align-items:center;gap:4px;">Real: ${obtenerBandera(real)} ${real}</div>`:''}
+      </div>
+    </div>`;
+  });
+  html+='</div></div>';
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 
 document.addEventListener('click', function(e) {
